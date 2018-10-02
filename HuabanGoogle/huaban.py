@@ -26,7 +26,7 @@ class HuabanSpider():
     def method(self):
         method = input("What kind of method do u want to use for Download? Theme(T)/Board(B)/Google(G): ").lower()
         if method == "t":
-            return "http://huaban.com/favorite/"  + input("Theme: ") # 指定主题下载
+            return "http://huaban.com/favorite/" + input("Theme: ") # 指定主题下载
         elif method == "b":
             return "http://huaban.com/boards/" + input("Board-ID: ") # TODO: 指定画板ID下载， bug: list index out of range
         elif method == "g":
@@ -58,7 +58,7 @@ class HuabanSpider():
         return self.homeUrl + "?i5p998kw&max=" + No + "&limit=20&wfl=1"
 
     def refresh(self, maxID):
-        return requests.get(url = self.make_ajax_url(maxID)).content
+        return requests.get(url=self.make_ajax_url(maxID)).content
 
     def getImgUrl(self):
         self.getPinsDic(self.homePage())
