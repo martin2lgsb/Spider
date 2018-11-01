@@ -27,10 +27,12 @@ def get_json(url, num, pos):
     }
 
     res = requests.post(url, headers=my_headers, data=my_data)
-    res.raise_for_status()
-    res.encoding = 'utf-8'
-    page = res.json()
-    return page
+    if res.status_code == requests.codes.ok:
+        res.encoding = 'utf-8'
+        page = res.json()
+        return page
+    else:
+        return None
 
 
 def get_description(positionId):
@@ -51,17 +53,20 @@ def get_description(positionId):
 
 
 def save_position(res_position, file_sufix):
+    pos_id_arr = []
     for res in res_position:
+        pos_id_arr.append(res['positionId'])
         with open('./data/position_' + file_sufix + '.data', 'a') as p:
             json.dump(res, p, ensure_ascii=False)
             p.write('\n')
-        save_description(res, file_sufix)
+    logging.info("---- 已记录一页相关描述 | 职位 ----")
+    return pos_id_arr
 
 
-def save_description(result_pos, file_sufix):
-    position_id = result_pos['positionId']
-    debug_save_description(position_id, file_sufix)
-    sleep(3)
+def save_description(pos_id_arr, file_sufix):
+    for position_id in pos_id_arr:
+        debug_save_description(position_id, file_sufix)
+        sleep(3)
 
 
 def debug_save_description(position_id, file_sufix):
@@ -87,7 +92,7 @@ def debug_save_description(position_id, file_sufix):
     with open('./data/description_' + file_sufix + '.data', 'a') as d:
         writer = csv.writer(d, delimiter='\t')
         writer.writerow(description)
-    logging.info("---- 已记录一条相关描述 ----")
+    logging.info("---- 已记录一条相关描述 | 详情 ----")
 
 
 def get_information(pos, pos_pinyin):
@@ -108,7 +113,7 @@ def get_information(pos, pos_pinyin):
 
     for num in range(1, total_pages_num + 1):
         position = get_json(url, num, pos)
-        while len(position) == 0:
+        while position is None:
             logging.info("---- 查询间歇，请稍等 ----")
             sleep(30)
             position = get_json(url, 1, pos)
@@ -119,8 +124,9 @@ def get_information(pos, pos_pinyin):
             logging.info("---- 第 {} 页项目数据无法正确获取 ----".format(num))
             continue
         else:
-            save_position(res_position, pos_pinyin)
-            sleep(30)
+            pos_arr = save_position(res_position, pos_pinyin)
+            save_description(pos_arr, pos_pinyin)
+            sleep(45)
 
         # print(json.dumps(position['content']['positionResult']['result'][0], indent=4, ensure_ascii=False)
 
