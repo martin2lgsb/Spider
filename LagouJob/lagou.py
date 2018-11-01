@@ -99,12 +99,17 @@ def get_information(pos, pos_pinyin):
 
     url = 'https://www.lagou.com/jobs/positionAjax.json?city=%E5%8C%97%E4%BA%AC&needAddtionalResult=false'
     position = get_json(url, 1, pos)
-    while len(position) == 0:
+    while position is None:
         logging.info("---- 查询间歇，请稍等 ----")
         sleep(30)
         position = get_json(url, 1, pos)
 
-    total_count = position['content']['positionResult']['totalCount']
+    try:
+        total_count = position['content']['positionResult']['totalCount']
+    except Exception:
+        print(position)
+        total_count = 0
+
     logging.info("---- 查询返回共 {} 条结果 ----".format(total_count))
     if total_count == 0:
         logging.info("---- 未返回任何查询结果 ----")
@@ -116,7 +121,7 @@ def get_information(pos, pos_pinyin):
         while position is None:
             logging.info("---- 查询间歇，请稍等 ----")
             sleep(30)
-            position = get_json(url, 1, pos)
+            position = get_json(url, num, pos)
 
         try:
             res_position = position['content']['positionResult']['result']
