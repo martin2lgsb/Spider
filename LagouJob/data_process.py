@@ -1,3 +1,5 @@
+import json
+
 import jieba
 import wordcloud
 import csv
@@ -40,5 +42,18 @@ def read_save_text(file_name):
             for item in word_sorted:
                 writer.writerow(list(item))
 
+
+def test_data(file_name):
+    id_arr = []
+    with open("./data/position_" + file_name + ".data", "r") as p:
+        lines = p.readlines()
+        for line in lines:
+            d = json.loads(line)
+            id_arr.append(d['positionId'])
+    print(len(id_arr))
+    print(len(set(id_arr)))
+
+
 if __name__ == '__main__':
-    read_save_text('sjwj')
+    # read_save_text('sjwj')
+    test_data('sjwj')

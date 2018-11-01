@@ -79,9 +79,9 @@ def debug_save_description(position_id, file_sufix):
 
         if try_count == 1:
             sleep(25)
-        elif try_count > 5:
+        elif 15 > try_count > 5:
             sleep(10)
-        elif try_count > 10:
+        elif try_count >= 15:
             logging.info("---- 项目 {} 记录尝试失败 ----")
             break
         sleep(5)
