@@ -8,6 +8,8 @@ from time import sleep
 import requests
 from lxml import etree
 
+from data_process import read_save_text
+
 def get_json(url, num, pos):
     my_headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36',
@@ -50,7 +52,7 @@ def get_description(positionId):
 
 def save_position(res_position, file_sufix):
     for res in res_position:
-        with open('./position_' + file_sufix + '.data', 'a') as p:
+        with open('./data/position_' + file_sufix + '.data', 'a') as p:
             json.dump(res, p, ensure_ascii=False)
             p.write('\n')
         save_description(res, file_sufix)
@@ -82,22 +84,13 @@ def debug_save_description(position_id, file_sufix):
 
     details_str = ''.join(details).replace('\r', '').replace('\n', '').replace('\t', '').strip()
     description = [position_id, details_str]
-    with open('./description_' + file_sufix + '.data', 'a') as d:
+    with open('./data/description_' + file_sufix + '.data', 'a') as d:
         writer = csv.writer(d, delimiter='\t')
         writer.writerow(description)
     logging.info("---- 已记录一条相关描述 ----")
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
 
-    # debug_save_description(2116208)
-    # exit(1)
-
-    pos = str(input("请输入你需要查找的职位名称（北京）: ")).strip()
-    if pos == "":
-        logging.info("---- 用户未输入任何信息 ----")
-        exit(0)
-    pos_pinyin = pinyin.get_initial(pos).replace(" ", "")
+def get_information(pos, pos_pinyin):
 
     url = 'https://www.lagou.com/jobs/positionAjax.json?city=%E5%8C%97%E4%BA%AC&needAddtionalResult=false'
     position = get_json(url, 1, pos)
@@ -120,7 +113,29 @@ if __name__ == '__main__':
             sleep(30)
             position = get_json(url, 1, pos)
 
-        res_position = position['content']['positionResult']['result']
-        save_position(res_position, pos_pinyin)
+        try:
+            res_position = position['content']['positionResult']['result']
+        except Exception:
+            logging.info("---- 第 {} 页项目数据无法正确获取 ----".format(num))
+            continue
+        else:
+            save_position(res_position, pos_pinyin)
+            sleep(30)
 
-    # print(json.dumps(position['content']['positionResult']['result'][0], indent=4, ensure_ascii=False))
+        # print(json.dumps(position['content']['positionResult']['result'][0], indent=4, ensure_ascii=False)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
+    pos_input = str(input("请输入你需要查找的职位名称（北京）: ")).strip()
+    if pos_input == "":
+        logging.info("---- 用户未输入任何信息 ----")
+        exit(0)
+
+    pos_input_pinyin = pinyin.get_initial(pos_input).replace(" ", "")
+
+    # 获取数据
+    get_information(pos_input, pos_input_pinyin)
+    # 存储词频
+    read_save_text(pos_input_pinyin)
+
